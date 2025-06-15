@@ -8,7 +8,7 @@ import SnakeGame from "./SnakeGame";
 function Terminal({ onCommand }) {
   const [history, setHistory] = useState([
     "sharyk@web:~$ Bienvenida al portafolio",
-   ]);
+  ]);
   const [input, setInput] = useState("");
   const terminalRef = useRef(null);
 
@@ -18,14 +18,13 @@ function Terminal({ onCommand }) {
       const trimmed = input.trim();
       const response = onCommand(trimmed);
 
-      if (trimmed == "clear") {
+      if (trimmed === "clear") {
         setHistory([]);
       } else {
-      const newHistory = [...history, `sharyk@web:~$ ${trimmed}`, ...response];
-      setHistory(newHistory);
+        const newHistory = [...history, `sharyk@web:~$ ${trimmed}`, ...response];
+        setHistory(newHistory);
+      }
       setInput("");
-    }
-    setInput("");
     }
   };
 
@@ -51,9 +50,52 @@ function Terminal({ onCommand }) {
           autoFocus
         />
       </div>
-      
     </div>
-    
+  );
+}
+
+function WindowInstance({ id, title, content, i, onClose, draggingEnabled }) {
+  const [isMaximized, setIsMaximized] = useState(false);
+
+  return (
+    <Rnd
+      size={isMaximized ? { width: "100%", height: "100%" } : { width: 500, height: 350 }}
+      position={isMaximized ? { x: 0, y: 0 } : { x: 80 + i * 40, y: 80 + i * 40 }}
+      minWidth={300}
+      minHeight={200}
+      bounds="parent"
+      className="absolute z-10"
+      disableDragging={!draggingEnabled}
+      enableResizing={!isMaximized}
+      dragHandleClassName="window-header"
+    >
+      <div className="bg-black/60 backdrop-blur-md border border-white/10 rounded-lg shadow-xl flex flex-col h-full">
+        <div className="window-header flex justify-between items-center px-3 py-2 bg-white/10 text-sm font-bold text-white rounded-t-lg cursor-move">
+          <span>{title}</span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setIsMaximized(!isMaximized)}
+              className="text-blue-300 hover:text-blue-200"
+              title={isMaximized ? "Restaurar tamaño" : "Maximizar"}
+              aria-label="Maximizar o restaurar ventana"
+            >
+              ⛶
+            </button>
+            <button
+              onClick={() => onClose(id)}
+              className="text-red-400 hover:text-red-300"
+              title="Cerrar"
+              aria-label="Cerrar ventana"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+        <div className="flex-1 overflow-auto p-3 text-white text-sm">
+          {typeof content === "string" ? <p>{content}</p> : content}
+        </div>
+      </div>
+    </Rnd>
   );
 }
 
@@ -83,7 +125,7 @@ export default function Desktop() {
     let output = [];
     switch (command) {
       case "help":
-        output.push("Comandos disponibles: help, about, clear, projects, paint");
+        output.push("Comandos disponibles: help, about, clear, projects, paint, snake");
         break;
       case "about":
         handleOpen("about");
@@ -112,21 +154,17 @@ export default function Desktop() {
     return output;
   };
 
-
   const windowsData = [
     {
       id: "about",
       title: "Acerca de mí",
-      content:
-        "Hola, soy Sharyk Sofía. Soy desarrolladora web con pasión por el diseño accesible y las experiencias únicas.",
+      content: "Hola, soy Sharyk Sofía. Soy desarrolladora web con pasión por el diseño accesible y las experiencias únicas.",
     },
-
-  {
-    id: "projects",
-    title: "Proyectos",
-    content: <Projects/>,
-  },
-
+    {
+      id: "projects",
+      title: "Proyectos",
+      content: <Projects />,
+    },
     {
       id: "terminal",
       title: "Terminal",
@@ -138,43 +176,24 @@ export default function Desktop() {
       content: <MiniPaint setDraggingEnabled={setDraggingEnabled} />,
     },
     {
-    id: "snake",
-    title: "Snake Game",
-    content: <SnakeGame />,
-   },
-
+      id: "snake",
+      title: "Snake Game",
+      content: <SnakeGame />,
+    },
   ];
 
-return (
-  <div
-    className="h-screen w-screen bg-cover bg-center bg-no-repeat relative overflow-hidden text-white"
-    style={{ backgroundImage: "url('multimedia/fondo.jpg')" }}>
+  return (
+    <div
+      className="h-screen w-screen bg-cover bg-center bg-no-repeat relative overflow-hidden text-white"
+      style={{ backgroundImage: "url('multimedia/fondo.jpg')" }}
+    >
+      {/* Íconos de escritorio */}
+      <DesktopIcon icon="📄" label="CV_Sharyk.pdf" position={{ x: 40, y: 60 }} onDoubleClick={() => window.open("/CV_Sharyk.pdf", "_blank")} />
+      <DesktopIcon icon="🎨" label="MiniPaint" position={{ x: 40, y: 180 }} onDoubleClick={() => handleOpen("paint")} />
+      <DesktopIcon icon="📁" label="Projects" position={{ x: 40, y: 300 }} onDoubleClick={() => handleOpen("projects")} />
+      <DesktopIcon icon="🐍" label="Snake Game" position={{ x: 40, y: 420 }} onDoubleClick={() => handleOpen("snake")} />
 
-    {/* Ícono de escritorio */}
-    <DesktopIcon
-      icon="📄"
-      label="CV_Sharyk.pdf"
-      position={{ x: 40, y: 60 }}
-      onDoubleClick={() => handleOpen("cv")} />
-    <DesktopIcon
-      icon="🎨"
-      label="MiniPaint"
-      position={{ x: 40, y: 180 }}
-      onDoubleClick={() => handleOpen("paint")} />
-    <DesktopIcon
-      icon="📁"
-      label="Projects"
-      position={{ x: 40, y: 300 }}
-      onDoubleClick={() => handleOpen("projects")} />
-    <DesktopIcon
-      icon="🐍"
-      label="Snake Game"
-      position={{ x: 40, y: 420 }}
-      onDoubleClick={() => handleOpen("snake")} />
-    
-
-
-      {/* Menú de inicio estilo Windows */}
+      {/* Menú de inicio */}
       {showStartMenu && (
         <div className="absolute bottom-14 left-4 bg-black/80 p-4 rounded-lg w-72 z-50 shadow-lg">
           <input
@@ -186,9 +205,7 @@ return (
           />
           <ul className="mt-2 max-h-60 overflow-y-auto">
             {windowsData
-              .filter((win) =>
-                win.title.toLowerCase().includes(search.toLowerCase())
-              )
+              .filter((win) => win.title.toLowerCase().includes(search.toLowerCase()))
               .map((win) => (
                 <li
                   key={win.id}
@@ -206,18 +223,10 @@ return (
         </div>
       )}
 
-      {/* Barra de tareas inferior */}
-      <div
-        className="absolute bottom-0 w-full h-12 bg-black/30 backdrop-blur-md border-t border-white/20 flex items-center justify-between px-4"
-      >
-        {/* Botón de inicio + accesos rápidos */}
+      {/* Barra de tareas */}
+      <div className="absolute bottom-0 w-full h-12 bg-black/30 backdrop-blur-md border-t border-white/20 flex items-center justify-between px-4">
         <div className="flex gap-4 items-center">
-          <button
-            onClick={() => setShowStartMenu((prev) => !prev)}
-            className="p-2 hover:bg-white/10 rounded"
-          >
-            🪟
-          </button>
+          <button onClick={() => setShowStartMenu((prev) => !prev)} className="p-2 hover:bg-white/10 rounded">🪟</button>
           {windowsData.map((win) => (
             <button
               key={win.id}
@@ -231,8 +240,6 @@ return (
             </button>
           ))}
         </div>
-
-        {/* Reloj */}
         <div className="text-sm font-mono">
           {clock.toLocaleTimeString([], { hour12: false })}
         </div>
@@ -241,39 +248,18 @@ return (
       {/* Ventanas abiertas */}
       {openWindows.map((id, i) => {
         const win = windowsData.find((w) => w.id === id);
-        return (
-          
-          <Rnd
-            key={id}
-            default={{
-            x: 100 + i * 40,
-            y: 100 + i * 40,
-            width: 400,
-            height: 300,
-                    }}
-            minWidth={200}
-            minHeight={100}
-            bounds="parent"
-            className="absolute z-10"
-            disableDragging={!draggingEnabled}
-          
->
+        if (!win) return null;
 
-            <div className="bg-black/60 backdrop-blur-md border border-white/10 rounded-lg shadow-xl flex flex-col h-full">
-              <div className="flex justify-between items-center px-3 py-2 bg-white/10 text-sm font-bold text-white rounded-t-lg">
-                {win.title}
-                <button
-                  onClick={() => handleClose(id)}
-                  className="text-red-400 hover:text-red-300"
-                >
-                  ✕
-                </button>
-              </div>
-              <div className="p-4 text-sm overflow-auto text-white">
-                {typeof win.content === "string" ? win.content : win.content}
-              </div>
-            </div>
-          </Rnd>
+        return (
+          <WindowInstance
+            key={id}
+            id={id}
+            title={win.title}
+            content={win.content}
+            i={i}
+            onClose={handleClose}
+            draggingEnabled={draggingEnabled}
+          />
         );
       })}
     </div>
