@@ -1,8 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 
 const CELL_SIZE = 20;
-const WIDTH = 300;
-const HEIGHT = 300;
 const DIRECTIONS = {
   ArrowUp: [0, -1],
   ArrowDown: [0, 1],
@@ -10,18 +8,37 @@ const DIRECTIONS = {
   ArrowRight: [1, 0],
 };
 
-function getRandomPosition() {
+function getRandomPosition(cols, rows) {
   return [
-    Math.floor(Math.random() * (WIDTH / CELL_SIZE)),
-    Math.floor(Math.random() * (HEIGHT / CELL_SIZE)),
+    Math.floor(Math.random() * cols),
+    Math.floor(Math.random() * rows),
   ];
 }
 
 export default function SnakeGame() {
+  const containerRef = useRef(null);
+  const [containerSize, setContainerSize] = useState({ cols: 15, rows: 15 });
   const [snake, setSnake] = useState([[5, 5]]);
-  const [food, setFood] = useState(getRandomPosition());
+  const [food, setFood] = useState([10, 10]);
   const [direction, setDirection] = useState([1, 0]);
   const [gameOver, setGameOver] = useState(false);
+
+  useEffect(() => {
+    const updateSize = () => {
+      if (containerRef.current) {
+        const { clientWidth, clientHeight } = containerRef.current;
+        const cols = Math.floor(clientWidth / CELL_SIZE);
+        const rows = Math.floor(clientHeight / CELL_SIZE);
+        setContainerSize({ cols, rows });
+        setFood(getRandomPosition(cols, rows));
+        setSnake([[5, 5]]);
+        setGameOver(false);
+      }
+    };
+    updateSize();
+    window.addEventListener("resize", updateSize);
+    return () => window.removeEventListener("resize", updateSize);
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -29,7 +46,6 @@ export default function SnakeGame() {
       if (newDir) setDirection(newDir);
     };
     window.addEventListener("keydown", handleKeyDown);
-
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
@@ -45,8 +61,8 @@ export default function SnakeGame() {
         if (
           newHead[0] < 0 ||
           newHead[1] < 0 ||
-          newHead[0] >= WIDTH / CELL_SIZE ||
-          newHead[1] >= HEIGHT / CELL_SIZE ||
+          newHead[0] >= containerSize.cols ||
+          newHead[1] >= containerSize.rows ||
           prev.some((s) => s[0] === newHead[0] && s[1] === newHead[1])
         ) {
           setGameOver(true);
@@ -55,7 +71,7 @@ export default function SnakeGame() {
 
         const newSnake = [newHead, ...prev];
         if (newHead[0] === food[0] && newHead[1] === food[1]) {
-          setFood(getRandomPosition());
+          setFood(getRandomPosition(containerSize.cols, containerSize.rows));
         } else {
           newSnake.pop();
         }
@@ -65,16 +81,12 @@ export default function SnakeGame() {
     }, 200);
 
     return () => clearInterval(interval);
-  }, [direction, food, gameOver]);
+  }, [direction, food, gameOver, containerSize]);
 
   return (
     <div
-      className="bg-black"
-      style={{
-        width: WIDTH,
-        height: HEIGHT,
-        position: "relative",
-      }}
+      ref={containerRef}
+      className="bg-black w-full h-full relative"
     >
       {snake.map(([x, y], i) => (
         <div

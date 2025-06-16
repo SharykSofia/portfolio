@@ -4,6 +4,7 @@ import DesktopIcon from "./DesktopIcon";
 import MiniPaint from "./MiniPaint";
 import Projects from "./Projects";
 import SnakeGame from "./SnakeGame";
+import Skills from "./Skills";
 
 function Terminal({ onCommand }) {
   const [history, setHistory] = useState([
@@ -56,11 +57,12 @@ function Terminal({ onCommand }) {
 
 function WindowInstance({ id, title, content, i, onClose, draggingEnabled }) {
   const [isMaximized, setIsMaximized] = useState(false);
+  const [position, setPosition] = useState({ x: 60 + i * 30, y: 60 + i * 30 });
 
   return (
     <Rnd
       size={isMaximized ? { width: "100%", height: "100%" } : { width: 500, height: 350 }}
-      position={isMaximized ? { x: 0, y: 0 } : { x: 80 + i * 40, y: 80 + i * 40 }}
+      position={isMaximized ? { x: 0, y: 0 } : position}
       minWidth={300}
       minHeight={200}
       bounds="parent"
@@ -68,6 +70,9 @@ function WindowInstance({ id, title, content, i, onClose, draggingEnabled }) {
       disableDragging={!draggingEnabled}
       enableResizing={!isMaximized}
       dragHandleClassName="window-header"
+      onDragStop={(e, d) => {
+        if (!isMaximized) setPosition({ x: d.x, y: d.y });
+      }}
     >
       <div className="bg-black/60 backdrop-blur-md border border-white/10 rounded-lg shadow-xl flex flex-col h-full">
         <div className="window-header flex justify-between items-center px-3 py-2 bg-white/10 text-sm font-bold text-white rounded-t-lg cursor-move">
@@ -76,16 +81,12 @@ function WindowInstance({ id, title, content, i, onClose, draggingEnabled }) {
             <button
               onClick={() => setIsMaximized(!isMaximized)}
               className="text-blue-300 hover:text-blue-200"
-              title={isMaximized ? "Restaurar tamaño" : "Maximizar"}
-              aria-label="Maximizar o restaurar ventana"
             >
               ⛶
             </button>
             <button
               onClick={() => onClose(id)}
               className="text-red-400 hover:text-red-300"
-              title="Cerrar"
-              aria-label="Cerrar ventana"
             >
               ✕
             </button>
@@ -180,6 +181,11 @@ export default function Desktop() {
       title: "Snake Game",
       content: <SnakeGame />,
     },
+    {
+      id: "skills",
+      title: "Skills",
+      content: <Skills />,
+    },
   ];
 
   return (
@@ -187,13 +193,12 @@ export default function Desktop() {
       className="h-screen w-screen bg-cover bg-center bg-no-repeat relative overflow-hidden text-white"
       style={{ backgroundImage: "url('multimedia/fondo.jpg')" }}
     >
-      {/* Íconos de escritorio */}
       <DesktopIcon icon="📄" label="CV_Sharyk.pdf" position={{ x: 40, y: 60 }} onDoubleClick={() => window.open("/CV_Sharyk.pdf", "_blank")} />
       <DesktopIcon icon="🎨" label="MiniPaint" position={{ x: 40, y: 180 }} onDoubleClick={() => handleOpen("paint")} />
       <DesktopIcon icon="📁" label="Projects" position={{ x: 40, y: 300 }} onDoubleClick={() => handleOpen("projects")} />
       <DesktopIcon icon="🐍" label="Snake Game" position={{ x: 40, y: 420 }} onDoubleClick={() => handleOpen("snake")} />
+      <DesktopIcon icon="🪛" label="Skills" position={{ x: 160, y: 60 }} onDoubleClick={() => handleOpen("skills")} />
 
-      {/* Menú de inicio */}
       {showStartMenu && (
         <div className="absolute bottom-14 left-4 bg-black/80 p-4 rounded-lg w-72 z-50 shadow-lg">
           <input
@@ -223,7 +228,6 @@ export default function Desktop() {
         </div>
       )}
 
-      {/* Barra de tareas */}
       <div className="absolute bottom-0 w-full h-12 bg-black/30 backdrop-blur-md border-t border-white/20 flex items-center justify-between px-4">
         <div className="flex gap-4 items-center">
           <button onClick={() => setShowStartMenu((prev) => !prev)} className="p-2 hover:bg-white/10 rounded">🪟</button>
@@ -245,7 +249,6 @@ export default function Desktop() {
         </div>
       </div>
 
-      {/* Ventanas abiertas */}
       {openWindows.map((id, i) => {
         const win = windowsData.find((w) => w.id === id);
         if (!win) return null;
@@ -265,3 +268,4 @@ export default function Desktop() {
     </div>
   );
 }
+
